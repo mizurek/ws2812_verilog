@@ -18,8 +18,7 @@ module ws2812
 	input wire [7:0] blue,
 	input we,
 	input rst,
-	output led,
-	output busy
+	output led
 );
 
 reg ser_running; //data is being transmitted
@@ -38,7 +37,6 @@ reg [11:0] reset_cnt;
 
 reg [1:0] we_sr; //we inputs values shift register
 reg [1:0] rst_sr; //rst inputs values shift register
-reg [63:0] busy_reg;
 
 /* 
 If 
@@ -53,11 +51,9 @@ wire color_r_bit = r_red[7 - bit_cnt];
 wire color_b_bit = r_blue[7 - bit_cnt];
 //end debug
 
-//colors swapped - currently order is RGB, GRB in PDF (bug in datasheet?)
-wire color_bit = (color_cnt == 0) ? (r_red[7 - bit_cnt]) : ( (color_cnt == 1) ? (r_green[7 - bit_cnt]) : (r_blue[7 - bit_cnt]) );
+wire color_bit = (color_cnt == 0) ? (r_green[7 - bit_cnt]) : ( (color_cnt == 1) ? (r_red[7 - bit_cnt]) : (r_blue[7 - bit_cnt]) );
 wire [9:0] ticks_num = tick_state ? (color_bit ? ticks_1l : ticks_0l) : (color_bit ? ticks_1h : ticks_0h );
 assign led = (rst_running || (~ser_running)) ? 0 : (~tick_state); //tick_cnt == 0 always outputs 1, tick_cnt == 1 always outputs 0, only duty changes
-assign busy = (busy_reg > 0) | (we_sr == 1);
 
 assign we_event = (we_sr == 1);
 assign rst_event = (rst_sr == 1);
@@ -76,12 +72,6 @@ begin
 	we_sr <= 0;
 	rst_sr <= 0;
 	tick_state <= 0;
-	busy_reg <= 0;
-end
-
-always@(posedge clk)
-begin
-	busy_reg <= (busy_reg << 1) | ser_running;
 end
 
 always@(posedge clk)

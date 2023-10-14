@@ -2,3 +2,5 @@ db/*
 incremental_db/*
 output_files/*
 !output_files/ws2812_led.sof
+modelsim/*
+simulation/*
